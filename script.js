@@ -40,6 +40,9 @@ $(document).ready(function () {
         if ($("#pauseBtn").length === 0) {
             $("#controlBtn").after('<button id="pauseBtn" style="padding: 15px 50px; font-size: 15px; background-color: orange; margin-left: 10px;" disabled>⏸️ Pause</button>');
         }
+        $("#pauseBtn").off("click").on("click", function() {
+            togglePause();
+        });
     }
 
     function startTimer() {
@@ -51,7 +54,7 @@ $(document).ready(function () {
         }
         
         timerInterval = setInterval(function() {
-            if (!gamePaused && gameStarted) { 
+            if (gameStarted && !gamePaused) {
                 timeLeft--;
                 $("#timerDisplay").text(`⏱️ Time: ${timeLeft}s`);
                 
@@ -73,13 +76,19 @@ $(document).ready(function () {
     }
 
     function togglePause() {
-        if (!gameStarted) return;
+        console.log("Toggle pause called, gameStarted:", gameStarted, "gamePaused:", gamePaused); 
+        
+        if (!gameStarted) {
+            console.log("Game not started, ignoring pause");
+            return;
+        }
         
         gamePaused = !gamePaused;
+        console.log("Game paused now:", gamePaused);
         
         if (gamePaused) {
             $("#pauseBtn").text("▶️ Resume").css("background-color", "lightgreen");
-            lockBoard = true; 
+            lockBoard = true;
             if (flipTimeout) {
                 clearTimeout(flipTimeout);
                 flipTimeout = null;
@@ -88,13 +97,15 @@ $(document).ready(function () {
             $("#timerDisplay").text(`⏱️ Time: ${timeLeft}s ⏸️ PAUSED`);
         } else {
             $("#pauseBtn").text("⏸️ Pause").css("background-color", "orange");
-            lockBoard = false; 
+            lockBoard = false;
             $(".game-board").css("opacity", "1");
             $("#timerDisplay").text(`⏱️ Time: ${timeLeft}s`);
         }
     }
 
     function startGame() {
+        console.log("Starting game");
+        
         if (flipTimeout) {
             clearTimeout(flipTimeout);
             flipTimeout = null;
@@ -118,6 +129,8 @@ $(document).ready(function () {
     }
 
     function finishGame() {
+        console.log("Finishing game");
+        
         if (flipTimeout) {
             clearTimeout(flipTimeout);
             flipTimeout = null;
@@ -154,13 +167,25 @@ $(document).ready(function () {
             }, 500);
         }
     }
-
     $(".game-board").on("click", ".card", function () {
-        if (!gameStarted) return; 
-        if (gamePaused) return;
-        if (lockBoard) return; 
-        if ($(this).hasClass("flipped") || $(this).hasClass("matched")) return; 
+        if (!gameStarted) {
+            console.log("Game not started");
+            return;
+        }
+        if (gamePaused) {
+            console.log("Game paused");
+            return;
+        }
+        if (lockBoard) {
+            console.log("Board locked");
+            return;
+        }
+        if ($(this).hasClass("flipped") || $(this).hasClass("matched")) {
+            console.log("Card already flipped or matched");
+            return;
+        }
 
+        console.log("Card clicked");
         $(this).addClass("flipped");
 
         if (!firstCard) {
@@ -172,12 +197,15 @@ $(document).ready(function () {
         lockBoard = true;
 
         if (firstCard.data("symbol") === secondCard.data("symbol")) {
+            console.log("Match found!");
             firstCard.addClass("matched");
             secondCard.addClass("matched");
             resetTurn();
             checkWin();
         } else {
+            console.log("No match");
             flipTimeout = setTimeout(function () {
+                console.log("Flipping cards back");
                 firstCard.removeClass("flipped");
                 secondCard.removeClass("flipped");
                 resetTurn();
@@ -185,18 +213,17 @@ $(document).ready(function () {
             }, 2000);
         }
     });
-
     $("#controlBtn").click(function () {
+        console.log("Control button clicked");
         if (!gameStarted) {
             startGame();
         } else {
             finishGame();
         }
     });
-    
-    $("#pauseBtn").click(function() {
+    $(document).on("click", "#pauseBtn", function() {
+        console.log("Pause button clicked directly");
         togglePause();
     });
-    
     createBoard();
 });
