@@ -40,9 +40,6 @@ $(document).ready(function () {
         if ($("#pauseBtn").length === 0) {
             $("#controlBtn").after('<button id="pauseBtn" style="padding: 15px 50px; font-size: 15px; background-color: orange; margin-left: 10px;" disabled>⏸️ Pause</button>');
         }
-        $("#pauseBtn").off("click").on("click", function() {
-            togglePause();
-        });
     }
 
     function startTimer() {
@@ -76,17 +73,17 @@ $(document).ready(function () {
     }
 
     function togglePause() {
-        console.log("Toggle pause called, gameStarted:", gameStarted, "gamePaused:", gamePaused); 
+        console.log("Toggle pause called, gameStarted:", gameStarted, "gamePaused:", gamePaused);
         
         if (!gameStarted) {
             console.log("Game not started, ignoring pause");
             return;
         }
-        
         gamePaused = !gamePaused;
         console.log("Game paused now:", gamePaused);
         
         if (gamePaused) {
+            console.log("PAUSING GAME");
             $("#pauseBtn").text("▶️ Resume").css("background-color", "lightgreen");
             lockBoard = true;
             if (flipTimeout) {
@@ -94,11 +91,14 @@ $(document).ready(function () {
                 flipTimeout = null;
             }
             $(".game-board").css("opacity", "0.7");
+            $(".game-board").css("filter", "grayscale(50%)");
             $("#timerDisplay").text(`⏱️ Time: ${timeLeft}s ⏸️ PAUSED`);
         } else {
+            console.log("RESUMING GAME");
             $("#pauseBtn").text("⏸️ Pause").css("background-color", "orange");
             lockBoard = false;
             $(".game-board").css("opacity", "1");
+            $(".game-board").css("filter", "none");
             $("#timerDisplay").text(`⏱️ Time: ${timeLeft}s`);
         }
     }
@@ -120,6 +120,7 @@ $(document).ready(function () {
         gamePaused = false;
         $(".card").removeClass("flipped matched");
         $(".game-board").css("opacity", "1");
+        $(".game-board").css("filter", "none");
         
         $("#controlBtn").text("🏁 Finish").css("background-color", "salmon");
         $("#pauseBtn").text("⏸️ Pause").prop("disabled", false).css("background-color", "orange");
@@ -140,6 +141,7 @@ $(document).ready(function () {
         $(".card").addClass("flipped");
         $(".card").removeClass("matched");
         $(".game-board").css("opacity", "1");
+        $(".game-board").css("filter", "none");
         
         gameStarted = false;
         gamePaused = false;
@@ -173,7 +175,7 @@ $(document).ready(function () {
             return;
         }
         if (gamePaused) {
-            console.log("Game paused");
+            console.log("Game paused - clicks blocked");
             return;
         }
         if (lockBoard) {
@@ -221,8 +223,8 @@ $(document).ready(function () {
             finishGame();
         }
     });
-    $(document).on("click", "#pauseBtn", function() {
-        console.log("Pause button clicked directly");
+    $("#pauseBtn").click(function() {
+        console.log("Pause button clicked");
         togglePause();
     });
     createBoard();
