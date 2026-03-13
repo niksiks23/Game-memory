@@ -6,6 +6,7 @@ $(document).ready(function () {
     let secondCard = null;
     let lockBoard = false;
     let gameStarted = false;
+    let flipTimeout=null;
 
     function shuffle(array) {
         return array.sort(() => Math.random() - 0.5);
@@ -33,6 +34,10 @@ $(document).ready(function () {
     }
 
     function startGame() {
+        if(flipTimeout){
+            clearTimeout(flipTimeout);
+            flipTimeout=null;
+        }
         firstCard = null;
         secondCard = null;
         lockBoard = false;
@@ -42,6 +47,10 @@ $(document).ready(function () {
     }
 
     function finishGame() {
+        if(flipTimeout){
+            clearTimeout(flipTimeout);
+            flipTimeout=null;
+        }
         $(".card").addClass("flipped");
         $(".card").removeClass("matched");
         $(".card").off("click");
@@ -86,14 +95,14 @@ $(document).ready(function () {
             resetTurn();
             checkWin();
         } else {
-            setTimeout(function () {
+            flipTimeout=setTimeout(function(){
                 firstCard.removeClass("flipped");
                 secondCard.removeClass("flipped");
                 resetTurn();
-            }, 2000);
+                flipTimeout=null;
+            },2000);
         }
     });
-
     $("#controlBtn").click(function () {
         if (!gameStarted) {
             startGame();
