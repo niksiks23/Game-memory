@@ -6,7 +6,9 @@ $(document).ready(function () {
     let secondCard = null;
     let lockBoard = false;
     let gameStarted = false;
-    let flipTimeout=null;
+    let flipTimeout = null;
+    let timerInterval = null;
+    let timeLeft = 30;
 
     function shuffle(array) {
         return array.sort(() => Math.random() - 0.5);
@@ -30,33 +32,69 @@ $(document).ready(function () {
 
             $(".game-board").append(card);
         });
-        $(".card").addClass("flipped");
+        if ($("#timerDisplay").length === 0) {
+            $("h1").after('<div id="timerDisplay" style="font-size: 24px; margin: 10px;">Time: 30s</div>');
+        }
+    }
+
+    function startTimer() {
+        timeLeft = 30;
+        $("#timerDisplay").text(`Time: ${timeLeft}s`);
+        
+        if (timerInterval) {
+            clearInterval(timerInterval);
+        }
+        
+        timerInterval = setInterval(function() {
+            timeLeft--;
+            $("#timerDisplay").text(`Time: ${timeLeft}s`);
+            
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                alert("Time's up! You lose!");
+                finishGame();
+            }
+        }, 1000);
+    }
+
+    function stopTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
     }
 
     function startGame() {
-        if(flipTimeout){
+        if (flipTimeout) {
             clearTimeout(flipTimeout);
-            flipTimeout=null;
+            flipTimeout = null;
         }
+        
         firstCard = null;
         secondCard = null;
         lockBoard = false;
         gameStarted = true;
         $(".card").removeClass("flipped matched");
         $("#controlBtn").text("Finish");
+        startTimer();
     }
 
     function finishGame() {
-        if(flipTimeout){
+        if (flipTimeout) {
             clearTimeout(flipTimeout);
-            flipTimeout=null;
+            flipTimeout = null;
         }
+        stopTimer();
+        
         $(".card").addClass("flipped");
         $(".card").removeClass("matched");
-        $(".card").off("click");
-
         gameStarted = false;
+        firstCard = null;
+        secondCard = null;
+        lockBoard = false;
         $("#controlBtn").text("Start");
+        $("#timerDisplay").text("Time: 30s");
     }
 
     function resetTurn() {
@@ -67,6 +105,7 @@ $(document).ready(function () {
 
     function checkWin() {
         if ($(".matched").length === $(".card").length) {
+            stopTimer();
             setTimeout(function () {
                 alert("!YOU WIN!");
                 finishGame();
@@ -95,14 +134,15 @@ $(document).ready(function () {
             resetTurn();
             checkWin();
         } else {
-            flipTimeout=setTimeout(function(){
+            flipTimeout = setTimeout(function () {
                 firstCard.removeClass("flipped");
                 secondCard.removeClass("flipped");
                 resetTurn();
-                flipTimeout=null;
-            },2000);
+                flipTimeout = null;
+            }, 2000);
         }
     });
+
     $("#controlBtn").click(function () {
         if (!gameStarted) {
             startGame();
@@ -110,5 +150,6 @@ $(document).ready(function () {
             finishGame();
         }
     });
+    
     createBoard();
 });
