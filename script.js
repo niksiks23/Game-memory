@@ -33,31 +33,32 @@ $(document).ready(function () {
 
             $(".game-board").append(card);
         });
+        $(".card").addClass("flipped");
         if ($("#timerDisplay").length === 0) {
-            $("h1").after('<div id="timerDisplay" style="font-size: 24px; margin: 10px;">Time: 30s</div>');
+            $("h1").after('<div id="timerDisplay" style="font-size: 24px; margin: 10px; font-weight: bold;">⏱️ Time: 30s</div>');
         }
         if ($("#pauseBtn").length === 0) {
-            $("#controlBtn").after('<button id="pauseBtn" style="padding: 15px 50px; font-size: 15px; background-color: orange; margin-left: 10px;" disabled>Pause</button>');
+            $("#controlBtn").after('<button id="pauseBtn" style="padding: 15px 50px; font-size: 15px; background-color: orange; margin-left: 10px;" disabled>⏸️ Pause</button>');
         }
     }
 
     function startTimer() {
         timeLeft = 30;
-        $("#timerDisplay").text(`Time: ${timeLeft}s`);
+        $("#timerDisplay").text(`⏱️ Time: ${timeLeft}s`);
         
         if (timerInterval) {
             clearInterval(timerInterval);
         }
         
         timerInterval = setInterval(function() {
-            if (!gamePaused) {
+            if (!gamePaused && gameStarted) { 
                 timeLeft--;
-                $("#timerDisplay").text(`Time: ${timeLeft}s`);
+                $("#timerDisplay").text(`⏱️ Time: ${timeLeft}s`);
                 
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
                     timerInterval = null;
-                    alert("Time's up! You lose!");
+                    alert("⏰ Time's up! You lose!");
                     finishGame();
                 }
             }
@@ -77,15 +78,19 @@ $(document).ready(function () {
         gamePaused = !gamePaused;
         
         if (gamePaused) {
-            $("#pauseBtn").text("Resume");
-            lockBoard = true;
+            $("#pauseBtn").text("▶️ Resume").css("background-color", "lightgreen");
+            lockBoard = true; 
             if (flipTimeout) {
                 clearTimeout(flipTimeout);
                 flipTimeout = null;
             }
+            $(".game-board").css("opacity", "0.7");
+            $("#timerDisplay").text(`⏱️ Time: ${timeLeft}s ⏸️ PAUSED`);
         } else {
-            $("#pauseBtn").text("Pause");
+            $("#pauseBtn").text("⏸️ Pause").css("background-color", "orange");
             lockBoard = false; 
+            $(".game-board").css("opacity", "1");
+            $("#timerDisplay").text(`⏱️ Time: ${timeLeft}s`);
         }
     }
 
@@ -95,14 +100,19 @@ $(document).ready(function () {
             flipTimeout = null;
         }
         
+        stopTimer();
+        
         firstCard = null;
         secondCard = null;
         lockBoard = false;
         gameStarted = true;
         gamePaused = false;
         $(".card").removeClass("flipped matched");
-        $("#controlBtn").text("Finish");
-        $("#pauseBtn").text("Pause").prop("disabled", false);
+        $(".game-board").css("opacity", "1");
+        
+        $("#controlBtn").text("🏁 Finish").css("background-color", "salmon");
+        $("#pauseBtn").text("⏸️ Pause").prop("disabled", false).css("background-color", "orange");
+        $("#timerDisplay").text("⏱️ Time: 30s");
         
         startTimer();
     }
@@ -114,17 +124,19 @@ $(document).ready(function () {
         }
         
         stopTimer();
-        
         $(".card").addClass("flipped");
         $(".card").removeClass("matched");
+        $(".game-board").css("opacity", "1");
+        
         gameStarted = false;
         gamePaused = false;
         firstCard = null;
         secondCard = null;
         lockBoard = false;
-        $("#controlBtn").text("Start");
-        $("#pauseBtn").text("Pause").prop("disabled", true);
-        $("#timerDisplay").text("Time: 30s");
+        
+        $("#controlBtn").text("START").css("background-color", "aqua");
+        $("#pauseBtn").text("⏸️ Pause").prop("disabled", true).css("background-color", "orange");
+        $("#timerDisplay").text("⏱️ Time: 30s");
     }
 
     function resetTurn() {
@@ -137,16 +149,17 @@ $(document).ready(function () {
         if ($(".matched").length === $(".card").length) {
             stopTimer();
             setTimeout(function () {
-                alert("!YOU WIN!");
+                alert("🎉🏆 !YOU WIN! 🏆🎉");
                 finishGame();
             }, 500);
         }
     }
 
     $(".game-board").on("click", ".card", function () {
-        if (!gameStarted || gamePaused) return;
-        if (lockBoard) return;
-        if ($(this).hasClass("flipped") || $(this).hasClass("matched")) return;
+        if (!gameStarted) return; 
+        if (gamePaused) return;
+        if (lockBoard) return; 
+        if ($(this).hasClass("flipped") || $(this).hasClass("matched")) return; 
 
         $(this).addClass("flipped");
 
