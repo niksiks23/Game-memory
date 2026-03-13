@@ -59,3 +59,15 @@ body {
 .matched {
     opacity: 0.5;
 }
+#pauseBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#pauseBtn {
+    transition: all 0.3s;
+}
+
+#pauseBtn:hover:not(:disabled) {
+    background-color: #ff8c00;
+}
