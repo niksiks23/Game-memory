@@ -6,6 +6,7 @@ $(document).ready(function () {
     let secondCard = null;
     let lockBoard = false;
     let gameStarted = false;
+    let gamePaused = false;
     let flipTimeout = null;
     let timerInterval = null;
     let timeLeft = 30;
@@ -35,6 +36,9 @@ $(document).ready(function () {
         if ($("#timerDisplay").length === 0) {
             $("h1").after('<div id="timerDisplay" style="font-size: 24px; margin: 10px;">Time: 30s</div>');
         }
+        if ($("#pauseBtn").length === 0) {
+            $("#controlBtn").after('<button id="pauseBtn" style="padding: 15px 50px; font-size: 15px; background-color: orange; margin-left: 10px;" disabled>Pause</button>');
+        }
     }
 
     function startTimer() {
@@ -46,14 +50,16 @@ $(document).ready(function () {
         }
         
         timerInterval = setInterval(function() {
-            timeLeft--;
-            $("#timerDisplay").text(`Time: ${timeLeft}s`);
-            
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-                alert("Time's up! You lose!");
-                finishGame();
+            if (!gamePaused) {
+                timeLeft--;
+                $("#timerDisplay").text(`Time: ${timeLeft}s`);
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    alert("Time's up! You lose!");
+                    finishGame();
+                }
             }
         }, 1000);
     }
@@ -62,6 +68,24 @@ $(document).ready(function () {
         if (timerInterval) {
             clearInterval(timerInterval);
             timerInterval = null;
+        }
+    }
+
+    function togglePause() {
+        if (!gameStarted) return;
+        
+        gamePaused = !gamePaused;
+        
+        if (gamePaused) {
+            $("#pauseBtn").text("Resume");
+            lockBoard = true;
+            if (flipTimeout) {
+                clearTimeout(flipTimeout);
+                flipTimeout = null;
+            }
+        } else {
+            $("#pauseBtn").text("Pause");
+            lockBoard = false; 
         }
     }
 
@@ -75,8 +99,11 @@ $(document).ready(function () {
         secondCard = null;
         lockBoard = false;
         gameStarted = true;
+        gamePaused = false;
         $(".card").removeClass("flipped matched");
         $("#controlBtn").text("Finish");
+        $("#pauseBtn").text("Pause").prop("disabled", false);
+        
         startTimer();
     }
 
@@ -85,15 +112,18 @@ $(document).ready(function () {
             clearTimeout(flipTimeout);
             flipTimeout = null;
         }
+        
         stopTimer();
         
         $(".card").addClass("flipped");
         $(".card").removeClass("matched");
         gameStarted = false;
+        gamePaused = false;
         firstCard = null;
         secondCard = null;
         lockBoard = false;
         $("#controlBtn").text("Start");
+        $("#pauseBtn").text("Pause").prop("disabled", true);
         $("#timerDisplay").text("Time: 30s");
     }
 
@@ -114,7 +144,7 @@ $(document).ready(function () {
     }
 
     $(".game-board").on("click", ".card", function () {
-        if (!gameStarted) return;
+        if (!gameStarted || gamePaused) return;
         if (lockBoard) return;
         if ($(this).hasClass("flipped") || $(this).hasClass("matched")) return;
 
@@ -149,6 +179,10 @@ $(document).ready(function () {
         } else {
             finishGame();
         }
+    });
+    
+    $("#pauseBtn").click(function() {
+        togglePause();
     });
     
     createBoard();
